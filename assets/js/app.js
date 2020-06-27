@@ -19,6 +19,18 @@ var svg = d3.select("#scatter")
 var chartGroup = svg.append("g")
 .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
+function xAxisScale(fileData){
+  return d3.scaleLinear()
+        .domain([d3.min(fileData, d => d.poverty) - 2, d3.max(fileData, d => d.poverty) + 2])
+        .range([0, width]);
+}
+
+function yAxisScale(fileData){
+  return d3.scaleLinear()
+        .domain([d3.min(fileData, d => d.healthcare) - 2, d3.max(fileData, d => d.healthcare) + 2])
+        .range([height, 0]);
+}
+
 //Loading the data from the data.csv file
 d3.csv("assets/data/data.csv").then(function(fileData){
 
@@ -31,13 +43,9 @@ d3.csv("assets/data/data.csv").then(function(fileData){
 
     // Step 2: Create scale functions
     // ==============================
-    var xLinearScale = d3.scaleLinear()
-        .domain([d3.min(fileData, d => d.poverty) - 2, d3.max(fileData, d => d.poverty) + 2])
-        .range([0, width]);
+    var xLinearScale = xAxisScale(fileData);
 
-    var yLinearScale = d3.scaleLinear()
-        .domain([d3.min(fileData, d => d.healthcare) - 2, d3.max(fileData, d => d.healthcare) + 2])
-        .range([height, 0]);
+    var yLinearScale = yAxisScale(fileData);
 
     // Step 3: Create axis functions
     // ==============================
@@ -55,22 +63,23 @@ d3.csv("assets/data/data.csv").then(function(fileData){
 
     // Step 5: Create Circles
     // ==============================
-    var circlesGroup = chartGroup.selectAll("circle")
-    .data(fileData)
-    .enter()
-    .append("circle")
-    .attr("cx", d => xLinearScale(d.poverty))
-    .attr("cy", d => yLinearScale(d.healthcare))
-    .attr("r", "15")
-    .attr("fill", "#89bdd3")
-    .attr("opacity", ".5")
-    .append("text")
-    .attr("x", d => xLinearScale(d.poverty))
-    .attr("y", d => yLinearScale(d.healthcare))
-    .attr("text-anchor", "middle")
-    .attr("stroke", "red")
-    .attr("stroke-width", "1")
-    .text(d => d.abbr);
+    var circlesGroup = chartGroup.selectAll("circle").data(fileData).enter();
+    var circles = circlesGroup
+      .append("circle")
+      .attr("cx", d => xLinearScale(d.poverty))
+      .attr("cy", d => yLinearScale(d.healthcare))
+      .attr("r", "10")
+      .classed("stateCircle", true)
+      .attr("cursor", "pointer");
+
+    var circlesText = circlesGroup
+      .append("text")
+      .attr("x", d => xLinearScale(d.poverty))
+      .attr("y", d => yLinearScale(d.healthcare) + 3.5)
+      .classed("stateText", true)
+      .attr("font-size", "10px")
+      .attr("cursor", "pointer")
+      .text(d => d.abbr);
 
     // Create axes labels
     chartGroup.append("text")
